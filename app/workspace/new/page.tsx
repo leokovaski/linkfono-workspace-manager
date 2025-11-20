@@ -6,6 +6,7 @@ import { Building2, Sparkles, Check } from 'lucide-react';
 import { WorkspaceDataStep } from '@/components/workspace/wizard/WorkspaceDataStep';
 import { PlanSelectionStep } from '@/components/workspace/wizard/PlanSelectionStep';
 import { ConfirmStep } from '@/components/workspace/wizard/ConfirmStep';
+import { createClient } from '@/lib/supabase/client';
 import type { WorkspaceFormData, PlanType, WorkspaceSettingsFormData } from '@/types';
 
 export default function NewWorkspacePage() {
@@ -18,15 +19,34 @@ export default function NewWorkspacePage() {
     },
   });
   const [selectedPlan, setSelectedPlan] = useState<PlanType>();
-  const [trialAvailable] = useState(true);
+  const [trialAvailable, setTrialAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Check if user can use trial
-    // This would normally check the user's profile from an API
-    // For now, we'll assume trial is available
-    setLoading(false);
+    // Check if user can use trial by calling API
+    const checkTrialAvailability = async () => {
+      try {
+        const response = await fetch('/api/user/trial-status');
+
+        if (!response.ok) {
+          console.error('Failed to fetch trial status');
+          setTrialAvailable(true); // Default to available on error
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        setTrialAvailable(!data.trialUsed);
+      } catch (error) {
+        console.error('Error checking trial availability:', error);
+        setTrialAvailable(true); // Default to available on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkTrialAvailability();
   }, []);
 
   const handleWorkspaceDataNext = (data: WorkspaceFormData & { settings: WorkspaceSettingsFormData }) => {
@@ -41,11 +61,39 @@ export default function NewWorkspacePage() {
 
   const handleConfirm = async () => {
     setSubmitting(true);
-    // TODO: Implement Stripe checkout
-    // For now, just simulate
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    console.log('Creating workspace:', { workspaceData, selectedPlan });
-    setSubmitting(false);
+
+    try {
+      // Call API to create Stripe checkout session
+      const response = await fetch('/api/checkout/create-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          workspaceData,
+          planType: selectedPlan,
+          trialAvailable,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+
+      // Redirect to Stripe checkout
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      alert('Erro ao processar pagamento. Por favor, tente novamente.');
+      setSubmitting(false);
+    }
   };
 
   const steps = [
@@ -71,7 +119,7 @@ export default function NewWorkspacePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-300 via-white to-purple-50">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -82,21 +130,21 @@ export default function NewWorkspacePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8 sm:mb-12"
         >
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-            Crie seu Workspace
+            LinkFono
           </h1>
           <p className="text-gray-600 text-sm sm:text-base">
             Configure sua clínica em poucos passos
           </p>
-        </motion.div>
+        </motion.div> */}
 
         {/* Modern Progress Stepper */}
         <div className="mb-8 sm:mb-12">
@@ -104,7 +152,7 @@ export default function NewWorkspacePage() {
             {/* Progress Line */}
             <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10 hidden sm:block">
               <motion.div
-                className="h-full bg-gradient-to-r from-blue-600 to-purple-600"
+                className="h-full bg-gradient-to-r from-purple-600 to-purple-600"
                 initial={{ width: '0%' }}
                 animate={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
@@ -132,7 +180,7 @@ export default function NewWorkspacePage() {
                         ${isCompleted
                           ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg shadow-green-500/30'
                           : isCurrent
-                          ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30'
+                          ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30'
                           : 'bg-white border-2 border-gray-300 text-gray-400'
                         }
                       `}
@@ -144,7 +192,7 @@ export default function NewWorkspacePage() {
                       )}
                     </div>
 
-                    {isCurrent && (
+                    {/* {isCurrent && (
                       <motion.div
                         layoutId="activeStep"
                         className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full -z-10"
@@ -152,12 +200,12 @@ export default function NewWorkspacePage() {
                         animate={{ scale: 1.5 }}
                         transition={{ duration: 1, repeat: Infinity, repeatType: 'reverse' }}
                       />
-                    )}
+                    )} */}
                   </motion.div>
 
                   <div className="mt-3 text-center">
                     <div className={`text-xs sm:text-sm font-semibold ${
-                      isCurrent ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
+                      isCurrent ? 'text-purple-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
                     }`}>
                       {step.name}
                     </div>

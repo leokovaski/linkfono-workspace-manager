@@ -179,23 +179,109 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const supabase = await createClient();
 
-  if (!session.subscription) {
+  if (!session.subscription || !session.metadata) {
+    console.error('Missing subscription or metadata in checkout session');
     return;
   }
 
-  // Update workspace with payment information after checkout
-  const { error } = await (supabase as any)
-    .from('workspaces')
-    .update({
-      stripe_subscription_id: session.subscription as string,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('stripe_customer_id', session.customer as string);
+  try {
+    const { userId, planType, workspaceData: workspaceDataStr, isFirstWorkspace } = session.metadata;
 
-  if (error) {
-    console.error('Error updating workspace after checkout:', error);
+    if (!userId || !planType || !workspaceDataStr) {
+      console.error('Missing required metadata fields');
+      return;
+    }
+
+    const workspaceData = JSON.parse(workspaceDataStr);
+
+    // Get plan configuration
+    const { getPlanConfig } = await import('@/lib/constants/plans');
+    const planConfig = getPlanConfig(planType);
+
+    if (!planConfig) {
+      console.error('Invalid plan type:', planType);
+      return;
+    }
+
+    // Calculate trial end date (7 days from now if trial available)
+    const trialEndsAt = isFirstWorkspace === 'true'
+      ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      : new Date();
+
+    // 1. Create workspace
+    const { data: workspace, error: workspaceError } = await supabase
+      .from('workspaces')
+      .insert({
+        name: workspaceData.name,
+        cpf_cnpj: workspaceData.cpf_cnpj,
+        address: workspaceData.address,
+        number: workspaceData.number,
+        complement: workspaceData.complement,
+        neighborhood: workspaceData.neighborhood,
+        city: workspaceData.city,
+        state: workspaceData.state,
+        zip_code: workspaceData.zip_code,
+        status: isFirstWorkspace === 'true' ? 'trial' : 'active',
+        plan_type: planType,
+        stripe_customer_id: session.customer as string,
+        stripe_subscription_id: session.subscription as string,
+        trial_ends_at: trialEndsAt.toISOString(),
+        max_patients: planConfig.maxPatients,
+        max_members: planConfig.maxMembers,
+      })
+      .select()
+      .single();
+
+    if (workspaceError) {
+      console.error('Error creating workspace:', workspaceError);
+      throw workspaceError;
+    }
+
+    // 2. Create workspace settings
+    const { error: settingsError } = await supabase
+      .from('workspace_settings')
+      .insert({
+        workspace_id: workspace.id,
+        appointment_duration: workspaceData.settings.appointment_duration,
+        reminder_hours_before: workspaceData.settings.reminder_hours_before,
+      });
+
+    if (settingsError) {
+      console.error('Error creating workspace settings:', settingsError);
+      throw settingsError;
+    }
+
+    // 3. Create workspace member (owner)
+    const { error: memberError } = await supabase
+      .from('workspace_members')
+      .insert({
+        workspace_id: workspace.id,
+        user_id: userId,
+        role: 'owner',
+        is_active: true,
+      });
+
+    if (memberError) {
+      console.error('Error creating workspace member:', memberError);
+      throw memberError;
+    }
+
+    // 4. If this is the first workspace, mark trial as used
+    if (isFirstWorkspace === 'true') {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ trial_used: true })
+        .eq('id', userId);
+
+      if (profileError) {
+        console.error('Error updating profile trial_used:', profileError);
+        // Don't throw here, workspace was already created successfully
+      }
+    }
+
+    console.log(`Workspace created successfully for session ${session.id}`);
+  } catch (error) {
+    console.error('Error in handleCheckoutCompleted:', error);
     throw error;
   }
-
-  console.log(`Checkout completed for session ${session.id}`);
 }

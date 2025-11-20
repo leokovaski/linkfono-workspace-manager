@@ -22,6 +22,7 @@ interface AddressData {
 export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProps) {
   const [subStep, setSubStep] = useState(1);
   const [documentType, setDocumentType] = useState<DocumentType | null>(initialData?.cpf_cnpj ? 'cnpj' : null);
+  const [documentValue, setDocumentValue] = useState(initialData?.cpf_cnpj || '');
   const [workspaceName, setWorkspaceName] = useState(initialData?.name || '');
   const [cep, setCep] = useState(initialData?.zip_code || '');
   const [addressData, setAddressData] = useState<AddressData | null>(null);
@@ -31,7 +32,7 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
   const [loadingCep, setLoadingCep] = useState(false);
   const [cepError, setCepError] = useState('');
 
-  const totalSubSteps = 5;
+  const totalSubSteps = 6;
 
   const fetchAddress = async (zipCode: string) => {
     const cleanCep = zipCode.replace(/\D/g, '');
@@ -55,7 +56,7 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
 
       setAddressData(data);
       setLoadingCep(false);
-      setSubStep(4);
+      setSubStep(5);
     } catch (error) {
       setCepError('Erro ao buscar CEP');
       setLoadingCep(false);
@@ -69,7 +70,7 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
       // Final step - submit form
       const formData: WorkspaceFormData & { settings: WorkspaceSettingsFormData } = {
         name: workspaceName,
-        cpf_cnpj: documentType === 'cnpj' ? 'placeholder' : undefined,
+        cpf_cnpj: documentValue || undefined,
         zip_code: cep,
         address: addressData?.logradouro || '',
         number,
@@ -97,12 +98,15 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
       case 1:
         return documentType !== null;
       case 2:
-        return workspaceName.trim().length > 0;
+        const doc = documentValue.replace(/\D/g, '');
+        return documentType === 'cpf' ? doc.length === 11 : doc.length === 14;
       case 3:
-        return cep.replace(/\D/g, '').length === 8;
+        return workspaceName.trim().length > 0;
       case 4:
-        return number.trim().length > 0;
+        return cep.replace(/\D/g, '').length === 8;
       case 5:
+        return number.trim().length > 0;
+      case 6:
         return duration > 0;
       default:
         return false;
@@ -113,10 +117,10 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <Building2 className="w-7 h-7 text-blue-600" />
+        <p className="text-xl sm:text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <Building2 className="w-5 h-5 text-purple-600" />
           Seu Espaço
-        </h2>
+        </p>
         <p className="text-gray-600 text-sm sm:text-base">
           Etapa {subStep} de {totalSubSteps}
         </p>
@@ -125,7 +129,7 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 rounded-full h-2">
         <motion.div
-          className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full"
+          className="bg-gradient-to-r from-purple-600 to-purple-600 h-2 rounded-full"
           initial={{ width: '0%' }}
           animate={{ width: `${(subStep / totalSubSteps) * 100}%` }}
           transition={{ duration: 0.3 }}
@@ -163,14 +167,14 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
                   className={`
                     p-6 rounded-2xl border-2 cursor-pointer transition-all
                     ${documentType === 'cpf'
-                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 shadow-lg'
-                      : 'border-gray-200 hover:border-blue-300 bg-white'
+                      ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-50 shadow-lg'
+                      : 'border-gray-200 hover:border-purple-300 bg-white'
                     }
                   `}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${documentType === 'cpf' ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                      <FileText className={`w-6 h-6 ${documentType === 'cpf' ? 'text-blue-600' : 'text-gray-600'}`} />
+                    <div className={`p-3 rounded-xl ${documentType === 'cpf' ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                      <FileText className={`w-6 h-6 ${documentType === 'cpf' ? 'text-purple-600' : 'text-gray-600'}`} />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 mb-2">Com CPF</h4>
@@ -192,14 +196,14 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
                   className={`
                     p-6 rounded-2xl border-2 cursor-pointer transition-all
                     ${documentType === 'cnpj'
-                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 shadow-lg'
-                      : 'border-gray-200 hover:border-blue-300 bg-white'
+                      ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-50 shadow-lg'
+                      : 'border-gray-200 hover:border-purple-300 bg-white'
                     }
                   `}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl ${documentType === 'cnpj' ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                      <Building2 className={`w-6 h-6 ${documentType === 'cnpj' ? 'text-blue-600' : 'text-gray-600'}`} />
+                    <div className={`p-3 rounded-xl ${documentType === 'cnpj' ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                      <Building2 className={`w-6 h-6 ${documentType === 'cnpj' ? 'text-purple-600' : 'text-gray-600'}`} />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 mb-2">Com CNPJ</h4>
@@ -216,8 +220,58 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
             </div>
           )}
 
-          {/* Sub-step 2: Workspace Name */}
+          {/* Sub-step 2: CPF/CNPJ Input */}
           {subStep === 2 && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {documentType === 'cpf' ? 'Informe seu CPF' : 'Informe seu CNPJ'}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {documentType === 'cpf'
+                    ? 'Digite seu CPF para continuar'
+                    : 'Digite o CNPJ da sua clínica'
+                  }
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="document" className="block text-sm font-medium text-gray-700 mb-2">
+                  {documentType === 'cpf' ? 'CPF' : 'CNPJ'}
+                </label>
+                <input
+                  id="document"
+                  type="text"
+                  inputMode="numeric"
+                  value={documentValue}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (documentType === 'cpf') {
+                      const formatted = value
+                        .replace(/(\d{3})(\d)/, '$1.$2')
+                        .replace(/(\d{3})(\d)/, '$1.$2')
+                        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                      setDocumentValue(formatted);
+                    } else {
+                      const formatted = value
+                        .replace(/(\d{2})(\d)/, '$1.$2')
+                        .replace(/(\d{3})(\d)/, '$1.$2')
+                        .replace(/(\d{3})(\d)/, '$1/$2')
+                        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+                      setDocumentValue(formatted);
+                    }
+                  }}
+                  maxLength={documentType === 'cpf' ? 14 : 18}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white hover:border-gray-400 transition-all text-lg"
+                  placeholder={documentType === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
+                  autoFocus
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Sub-step 3: Workspace Name */}
+          {subStep === 3 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -245,8 +299,8 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
             </div>
           )}
 
-          {/* Sub-step 3: CEP */}
-          {subStep === 3 && (
+          {/* Sub-step 4: CEP */}
+          {subStep === 4 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -269,6 +323,7 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
                   <input
                     id="cep"
                     type="text"
+                    inputMode="numeric"
                     value={cep}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
@@ -291,15 +346,15 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
                 type="button"
                 onClick={() => fetchAddress(cep)}
                 disabled={loadingCep || cep.replace(/\D/g, '').length !== 8}
-                className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                className="w-full py-3 px-6 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-lg shadow-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
                 {loadingCep ? 'Buscando...' : 'Buscar Endereço'}
               </button>
             </div>
           )}
 
-          {/* Sub-step 4: Address Details */}
-          {subStep === 4 && addressData && (
+          {/* Sub-step 5: Address Details */}
+          {subStep === 5 && addressData && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -353,8 +408,8 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
             </div>
           )}
 
-          {/* Sub-step 5: Appointment Duration */}
-          {subStep === 5 && (
+          {/* Sub-step 6: Appointment Duration */}
+          {subStep === 6 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -397,7 +452,7 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
                     onClick={() => setDuration(min)}
                     className={`py-2 px-4 rounded-xl font-medium transition-all ${
                       duration === min
-                        ? 'bg-blue-600 text-white shadow-lg'
+                        ? 'bg-purple-600 text-white shadow-lg'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -411,12 +466,12 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
       </AnimatePresence>
 
       {/* Navigation Buttons */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 border-t border-gray-100">
+      <div className="flex justify-between items-center gap-4 pt-6 border-t border-gray-100">
         <button
           type="button"
           onClick={handleBack}
           disabled={subStep === 1}
-          className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-gray-700 font-semibold hover:text-gray-900 transition-all flex items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Voltar
@@ -425,8 +480,8 @@ export function WorkspaceDataStep({ initialData, onNext }: WorkspaceDataStepProp
         <button
           type="button"
           onClick={handleNext}
-          disabled={!canProceed() || (subStep === 3 && loadingCep)}
-          className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2 group"
+          disabled={!canProceed() || (subStep === 4 && loadingCep)}
+          className="px-8 py-3 bg-purple-500 text-white font-semibold rounded-xl hover:bg-purple-700-700 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2 group"
         >
           {subStep === totalSubSteps ? 'Continuar' : 'Próximo'}
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

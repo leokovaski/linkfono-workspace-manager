@@ -46,9 +46,9 @@ export function ConfirmStep({
           className="bg-white border-2 border-gray-200 rounded-2xl p-6"
         >
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-blue-100 rounded-xl">
+            {/* <div className="p-3 bg-blue-100 rounded-xl">
               <Building2 className="w-6 h-6 text-blue-600" />
-            </div>
+            </div> */}
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900 mb-3">Seu Espaço</h3>
               <dl className="space-y-2 text-sm">
@@ -91,9 +91,9 @@ export function ConfirmStep({
           className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl p-6"
         >
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-blue-600 rounded-xl">
+            {/* <div className="p-3 bg-blue-600 rounded-xl">
               <Sparkles className="w-6 h-6 text-white" />
-            </div>
+            </div> */}
             <div className="flex-1">
               <div className="flex items-start justify-between mb-3">
                 <div>
@@ -153,12 +153,12 @@ export function ConfirmStep({
       </motion.div>
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 border-t border-gray-100">
+      <div className="flex justify-between items-center gap-4 pt-6 border-t border-gray-100">
         <button
           type="button"
           onClick={onBack}
           disabled={loading}
-          className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-gray-700 font-semibold hover:text-gray-900 transition-all flex items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Voltar

@@ -95,7 +95,7 @@ export function PlanCard({ plan, selected = false, onSelect }: PlanCardProps) {
         className={`
           w-full py-3 px-6 rounded-xl font-semibold transition-all
           ${selected
-            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/30'
+            ? 'bg-green-600 text-white shadow-lg shadow-blue-500/30'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }
         `}

@@ -6,7 +6,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Workspace Manager',
+  title: 'LinkFono | Gestão de Workspace',
   description: 'Sistema de gestão de workspaces',
 };
 

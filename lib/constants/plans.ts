@@ -7,7 +7,7 @@ export const PLANS: Record<string, PlanConfig> = {
     name: 'Plano Individual',
     description: 'Ideal para profissionais autônomos',
     price: 97, // R$ 97/mês
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_INDIVIDUAL || 'price_individual',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_INDIVIDUAL || 'price_1RLz2HJ7ZqaKlLkgT0h7fbj7',
     maxPatients: 15,
     maxMembers: 1,
     features: [
@@ -24,7 +24,7 @@ export const PLANS: Record<string, PlanConfig> = {
     name: 'Plano Fono+',
     description: 'Para clínicas pequenas e médias',
     price: 197, // R$ 197/mês
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_FONO_PLUS || 'price_fono_plus',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_FONO_PLUS || 'price_1SUFu5J7ZqaKlLkgU9unKGZN',
     maxPatients: 30,
     maxMembers: 3,
     popular: true,
@@ -43,7 +43,7 @@ export const PLANS: Record<string, PlanConfig> = {
     name: 'Plano Pro',
     description: 'Para clínicas grandes sem limites',
     price: 397, // R$ 397/mês
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || 'price_pro',
+    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || 'price_1RLz3YJ7ZqaKlLkgHElrd0BX',
     maxPatients: -1, // -1 = unlimited
     maxMembers: -1, // -1 = unlimited
     features: [
