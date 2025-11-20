@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       .from('profiles')
       .select('trial_used')
       .eq('id', userId)
-      .single();
+      .single() as { data: { trial_used: boolean } | null; error: any };
 
     if (error) {
       console.error('Error fetching profile:', error);

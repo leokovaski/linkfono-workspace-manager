@@ -209,7 +209,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       : new Date();
 
     // 1. Create workspace
-    const { data: workspace, error: workspaceError } = await supabase
+    const { data: workspace, error: workspaceError } = await (supabase as any)
       .from('workspaces')
       .insert({
         name: workspaceData.name,
@@ -238,7 +238,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     // 2. Create workspace settings
-    const { error: settingsError } = await supabase
+    const { error: settingsError } = await (supabase as any)
       .from('workspace_settings')
       .insert({
         workspace_id: workspace.id,
@@ -252,7 +252,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     // 3. Create workspace member (owner)
-    const { error: memberError } = await supabase
+    const { error: memberError } = await (supabase as any)
       .from('workspace_members')
       .insert({
         workspace_id: workspace.id,
@@ -268,7 +268,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     // 4. If this is the first workspace, mark trial as used
     if (isFirstWorkspace === 'true') {
-      const { error: profileError } = await supabase
+      const { error: profileError } = await (supabase as any)
         .from('profiles')
         .update({ trial_used: true })
         .eq('id', userId);

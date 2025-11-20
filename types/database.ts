@@ -178,6 +178,7 @@ export interface Profile {
   full_name: string;
   email: string;
   whatsapp: string | null;
+  stripe_customer_id: string | null;
   trial_used: boolean;
   created_at: string;
   updated_at: string;
@@ -188,6 +189,7 @@ export interface ProfileInsert {
   full_name: string;
   email: string;
   whatsapp?: string | null;
+  stripe_customer_id?: string | null;
   trial_used?: boolean;
 }
 
@@ -195,6 +197,7 @@ export interface ProfileUpdate {
   full_name?: string;
   email?: string;
   whatsapp?: string | null;
+  stripe_customer_id?: string | null;
   trial_used?: boolean;
   updated_at?: string;
 }

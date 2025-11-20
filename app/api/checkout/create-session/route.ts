@@ -4,6 +4,12 @@ import { createCheckoutSession, getOrCreateCustomer } from '@/lib/stripe';
 import { getStripePriceId } from '@/lib/constants/plans';
 import type { PlanType } from '@/types';
 
+type ProfileData = {
+  email: string;
+  full_name: string;
+  stripe_customer_id: string | null;
+};
+
 export async function POST(request: NextRequest) {
   try {
     // Get userId from cookie (set by middleware)
@@ -34,7 +40,7 @@ export async function POST(request: NextRequest) {
       .from('profiles')
       .select('email, full_name, stripe_customer_id')
       .eq('id', userId)
-      .single();
+      .single() as { data: ProfileData | null; error: any };
 
     if (profileError || !profile) {
       return NextResponse.json(
@@ -55,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // If customer was newly created, save the stripe_customer_id to profile
     if (!profile.stripe_customer_id) {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('profiles')
         .update({ stripe_customer_id: customer.id })
         .eq('id', userId);
