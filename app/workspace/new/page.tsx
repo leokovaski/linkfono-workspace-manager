@@ -173,7 +173,7 @@ export default function NewWorkspacePage() {
                     }}
                     className="relative"
                   >
-                    <div
+                    {/* <div
                       className={`
                         w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center
                         transition-all duration-300 relative z-10
@@ -190,7 +190,7 @@ export default function NewWorkspacePage() {
                       ) : (
                         <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                       )}
-                    </div>
+                    </div> */}
 
                     {/* {isCurrent && (
                       <motion.div
